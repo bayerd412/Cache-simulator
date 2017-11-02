@@ -45,4 +45,34 @@ memory_write(unsigned int address, data_t *data);
 void
 memory_finish (void);
 
+//Some new.
+
+//Create a new cache.
+void
+create_cache(cache_t cache, unsigned int size, unsigned int assoc, unsigned int rp, unsigned int block_size, unsigned int bus, unsigned int wp);
+
+//Transform address and find out tag, index and offset of this address.
+void
+calc_address(cache_t *Cache, unsigned int address);
+
+//Search for block in cache.
+int 
+search_block(cache_t *Cache);
+
+//Search for empty block in cache.
+int 
+search_empty_block(cache_t *Cache);
+
+//Swap blocks between two caches (L1I and L2 or L1D and L2).
+void 
+change_block(cache_t *Cache, int L1, int L2);
+
+//Find the block in set, which was the least used.
+int 
+LRU_search(cache_t *Cache);
+
+//Update age of all valid blocks in all caches.
+void 
+aging();
+
 #endif
