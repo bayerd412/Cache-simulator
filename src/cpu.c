@@ -16,13 +16,13 @@ main(int argc, char *argv[])
 {
   FILE *tracef;
   p2AddrTr tr;
-
+  
   if (argc < 2)
   {
     printf("Usage: %s filename\n", argv[0]);
     exit(1);
   }
-
+  
   /* fopen(argv[1], "r") -> fopen(argv[1], "rb")
    * Windows doesn't follow POSIX here and fopen needs the 'b' to function
    * properly.
@@ -32,9 +32,9 @@ main(int argc, char *argv[])
     printf("Could not open file: %s\n", argv[1]);
     exit(1);
   }
-
+  
   memory_init(); /* Initialize the memory subsystem */
-
+  
   /* Loop through the trace file and simulate memory accesses */
   while (!feof(tracef))
   {

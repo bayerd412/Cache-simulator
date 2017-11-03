@@ -100,8 +100,6 @@ memory_init(void)
   create_cache(L1I_Cache, 32768, 4, 0, 64, 64, 0);
   create_cache(L1D_Cache, 32768, 8, 0, 64, 64, 0);
   create_cache(L2_Cache, 262144, 8, 0, 64, 64, 0);
-
-
   
 }
 
@@ -109,14 +107,16 @@ void
 memory_fetch(unsigned int address, data_t *data)
 {
   printf("memory: fetch 0x%08x\n", address);
+      
   calc_address(L1I_Cache, address);
   int res1 = search_block(L1I_Cache);
-  return;
   //Searching Block is in L1I Cache.
   if (res1 != -1)
   {
     L1I_Cache->read_hit++;
     L1I_Cache->blocks[res1]->age = 0;
+    return;
+  
   }
   else // Searching Block doesnot exist in L1I Cache.
   {
@@ -149,6 +149,7 @@ memory_fetch(unsigned int address, data_t *data)
         L1I_Cache->blocks[res1]->age = 0;
         L1I_Cache->blocks[res1]->valid_bit = 1;
         L1I_Cache->blocks[res1]->dirty_bit = 0;
+
       }
       else
       {
@@ -175,14 +176,17 @@ memory_fetch(unsigned int address, data_t *data)
       }
     }
   }
-  aging();
+  
+  //aging();
   instr_count++;
+  
 }
 
 void
 memory_read(unsigned int address, data_t *data)
 {
   printf("memory: read 0x%08x\n", address);
+      
   
   calc_address(L1D_Cache, address);
   int res1 = search_block(L1D_Cache);
@@ -200,7 +204,7 @@ memory_read(unsigned int address, data_t *data)
     int res2 = search_block(L2_Cache);
     if (res2 != -1)
     {
-      L2_Cache->read_hit;
+      L2_Cache->read_hit++;
       res1 = search_empty_block(L1D_Cache);
       if (res1 != -1)
       {
@@ -250,8 +254,8 @@ memory_read(unsigned int address, data_t *data)
       }
     }
   }
-
-  aging();
+  
+  //aging();
   instr_count++;
 }
 
@@ -259,6 +263,7 @@ void
 memory_write(unsigned int address, data_t *data)
 {
   printf("memory: write 0x%08x\n", address);
+      
   
   calc_address(L1D_Cache, address);
   int res1 = search_block(L1D_Cache);
@@ -330,8 +335,8 @@ memory_write(unsigned int address, data_t *data)
       }
     }
   }
-
-  aging();
+  
+  //aging();*/
   instr_count++;
 }
 
@@ -382,6 +387,7 @@ create_cache(cache_t *Cache, unsigned int size, unsigned int assoc, unsigned int
   unsigned int tag_entry = Cache->num_sets * Cache->cache_assoc;
 
   Cache->block_num = Cache->cache_size / Cache->block_size;
+  
   for (int i = 0; i < Cache->block_num; i++)
   {
     Cache->blocks[i] = malloc(sizeof(block_t));
@@ -391,6 +397,7 @@ create_cache(cache_t *Cache, unsigned int size, unsigned int assoc, unsigned int
     Cache->blocks[i]->dirty_bit = 0;
     Cache->blocks[i]->valid_bit = 0;
   }
+  
 
   Cache->read_hit = 0;
   Cache->read_miss = 0;
@@ -418,9 +425,10 @@ int search_block(cache_t *Cache)
   int j = 0;
   if (Cache != NULL)
   {
-    j = Cache->block_num / Cache->num_sets; //number of blocks in each set.
-    if (Cache->blocks[(current_set * j) + i] == NULL)
-      for (i = 0; i < j; i++)
+    j = Cache->block_num / Cache->num_sets; 
+    //number of blocks in each set.
+
+    for (i = 0; i < j; i++)
     {
       if (Cache->blocks[(current_set * j) + i]->tag == current_tag && Cache->blocks[(current_set * j) + i]->valid_bit == 1)
         return ((current_set * j) + i);
@@ -487,21 +495,35 @@ int LRU_search(cache_t *Cache)
 void aging()
 {
   int i;
+
+  
+  for (int i = 22; i < 26; i++)
+  {
+    L1I_Cache->blocks[i] = malloc(sizeof(block_t));
+    L1I_Cache->blocks[i]->tag = 0;
+    L1I_Cache->blocks[i]->age = 0;
+    L1I_Cache->blocks[i]->data = 0;
+    L1I_Cache->blocks[i]->dirty_bit = 0;
+    L1I_Cache->blocks[i]->valid_bit = 0;
+  }  
   for (i = 0; i < (L1I_Cache->block_num); i++)
   {
     if (L1I_Cache->blocks[i]->valid_bit == 1)
       L1I_Cache->blocks[i]->age++;
   }
+  
   for (i = 0; i < (L1D_Cache->block_num); i++)
   {
     if (L1D_Cache->blocks[i]->valid_bit == 1)
       L1D_Cache->blocks[i]->age++;
   }
+  
   for (i = 0; i < (L2_Cache->block_num); i++)
   {
     if (L2_Cache->blocks[i]->valid_bit == 1)
       L2_Cache->blocks[i]->age++;
   }
+
 }
 
 int find_log(unsigned int x)
